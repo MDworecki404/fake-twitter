@@ -95,53 +95,46 @@ interface Quote {
 }
 
 class App extends React.Component {
-  state: UserData & Quote = {
-    content: "",
-    quoteContent: "",
-    username: "",
-    avatar: "",
+  state: {
+    tweets: Array<UserData & Quote>;
+  } = {
+    tweets: [],
   };
+
+  addTweet = () => {
+    this.fetchUser().then((userData: UserData) => {
+      this.fetchQuote().then((quote: Quote) => {
+        this.setState((prevState) => ({
+          tweets: [
+            ...prevState.tweets,
+            {
+              avatar: userData.avatar,
+              username: userData.username,
+              quoteContent: quote.content,
+            },
+          ],
+        }));
+      });
+    });
+  };
+
   fetchUser() {
-    fetch("https://random-data-api.com/api/v2/users")
-      .then((res) => res.json())
-      .then((data: UserData) => {
-        this.setState({
-          username: data.username,
-          avatar: data.avatar,
-        });
-      });
+    return fetch("https://random-data-api.com/api/v2/users").then((res) =>
+      res.json()
+    );
   }
+
   fetchQuote() {
-    fetch("https://api.quotable.io/random")
-      .then((res) => res.json())
-      .then((data: Quote) => {
-        this.setState({
-          quoteContent: data.content,
-          content: (
-            <TweetBlock>
-              <Tweet>
-                <img src={this.state.avatar}></img>
-                <div className="tweetContent">
-                  <p className="username">
-                    {this.state.username}{" "}
-                    <span>{Math.round(Math.random() * 24)} h.</span>
-                  </p>
-                  <p className="quoteContent">{this.state.quoteContent}</p>
-                </div>
-              </Tweet>
-              <br></br>
-              <hr></hr>
-            </TweetBlock>
-          ),
-        });
-      });
+    return fetch("https://api.quotable.io/random").then((res) => res.json());
   }
+
   componentDidMount() {
-    this.fetchUser();
-    this.fetchQuote();
+    this.addTweet();
   }
 
   render() {
+    const { tweets } = this.state;
+
     return (
       <div className="App">
         <Phone>
@@ -149,16 +142,35 @@ class App extends React.Component {
             <nav>
               <img
                 className="profile"
-                src="https://blogtimenow.com/wp-content/uploads/2014/06/hide-facebook-profile-picture-notification.jpg"
-              ></img>
+                src="https://blogtimenow.com/wp-content/uploads/2014/06/hide-twitter-avatar.png"
+                alt="profile"
+              />
               <img
                 className="logo"
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Twitter-logo.svg/800px-Twitter-logo.svg.png"
-              ></img>
+                src="https://www.stickpng.com/assets/images/5847f98fcef1014c0b5e48c8.png"
+                alt="logo"
+              />
             </nav>
           </header>
-          <hr></hr>
-          <Tweets>{this.state.content}</Tweets>
+          <hr />
+          <Tweets>
+            {tweets.map((tweet) => (
+              <TweetBlock key={tweet.username}>
+                <Tweet>
+                  <img src={tweet.avatar} alt="avatar" />
+                  <div className="tweetContent">
+                    <p className="username">
+                      {tweet.username}{" "}
+                      <span>{Math.round(Math.random() * 24)} h.</span>
+                    </p>
+                    <p className="quoteContent">{tweet.quoteContent}</p>
+                  </div>
+                </Tweet>
+                <br />
+                <hr />
+              </TweetBlock>
+            ))}
+          </Tweets>
         </Phone>
       </div>
     );
