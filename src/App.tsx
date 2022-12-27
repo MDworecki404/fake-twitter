@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import "./App.css";
 
@@ -8,6 +8,7 @@ const Phone = styled.div`
   outline: 5px solid black;
   border-radius: 20px;
   background-color: black;
+  overflow: scroll;
 
   header {
     width: 100%;
@@ -37,28 +38,109 @@ const Phone = styled.div`
   }
   hr {
     width: 100%;
-    border: 0.5px solid gray;
+    border: 0.5px solid;
+    border-color: #3d3d3d66;
   }
 `;
 const Tweets = styled.section`
   width: 100%;
   color: white;
 `;
+const Tweet = styled.div`
+  width: 100%;
+  height: auto;
+  display: flex;
+  margin-top: 5%;
+
+  img {
+    width: 75px;
+    height: 75px;
+    border-radius: 100%;
+  }
+
+  .tweetContent {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding: 1%;
+  }
+  .username {
+    font-weight: bold;
+
+    span {
+      font-size: 1.5vw;
+      margin-left: 1%;
+      color: gray;
+    }
+  }
+  .quoteContent {
+    font-size: 1.7vw;
+  }
+`;
+const TweetBlock = styled.div`
+  hr {
+    border: 0.01px solid;
+    border-color: #3d3d3d66;
+  }
+`;
+
+interface UserData {
+  avatar: string;
+  username: string;
+}
+
+interface Quote {
+  content: string;
+  quoteContent: string;
+}
 
 class App extends React.Component {
-  state = {
+  state: UserData & Quote = {
     content: "",
+    quoteContent: "",
+    username: "",
+    avatar: "",
   };
-  componentDidMount() {
+  fetchUser() {
+    fetch("https://random-data-api.com/api/v2/users")
+      .then((res) => res.json())
+      .then((data: UserData) => {
+        this.setState({
+          username: data.username,
+          avatar: data.avatar,
+        });
+      });
+  }
+  fetchQuote() {
     fetch("https://api.quotable.io/random")
       .then((res) => res.json())
-      .then((data) =>
+      .then((data: Quote) => {
         this.setState({
-          content: data.content,
-        })
-      )
-      .catch((err) => console.log(err));
+          quoteContent: data.content,
+          content: (
+            <TweetBlock>
+              <Tweet>
+                <img src={this.state.avatar}></img>
+                <div className="tweetContent">
+                  <p className="username">
+                    {this.state.username}{" "}
+                    <span>{Math.round(Math.random() * 24)} h.</span>
+                  </p>
+                  <p className="quoteContent">{this.state.quoteContent}</p>
+                </div>
+              </Tweet>
+              <br></br>
+              <hr></hr>
+            </TweetBlock>
+          ),
+        });
+      });
   }
+  componentDidMount() {
+    this.fetchUser();
+    this.fetchQuote();
+  }
+
   render() {
     return (
       <div className="App">
