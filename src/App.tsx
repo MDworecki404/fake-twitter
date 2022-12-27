@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import "./App.css";
 
@@ -94,75 +94,92 @@ interface Quote {
   quoteContent: string;
 }
 
-class App extends React.Component {
-  state: UserData & Quote = {
-    content: "",
-    quoteContent: "",
-    username: "",
-    avatar: "",
-  };
-  fetchUser() {
-    fetch("https://random-data-api.com/api/v2/users")
-      .then((res) => res.json())
-      .then((data: UserData) => {
-        this.setState({
-          username: data.username,
-          avatar: data.avatar,
-        });
+const App = () => {
+  const [tweets, setTweets] = useState<Array<UserData & Quote>>([]);
+  const tweetBlockRef = useRef<HTMLDivElement>(null);
+
+  const addTweet = () => {
+    fetchUser().then((userData: UserData) => {
+      fetchQuote().then((quote: Quote) => {
+        setTweets((prevTweets) => [
+          ...prevTweets,
+          {
+            avatar: userData.avatar,
+            username: userData.username,
+            quoteContent: quote.content,
+          },
+        ]);
       });
-  }
-  fetchQuote() {
-    fetch("https://api.quotable.io/random")
-      .then((res) => res.json())
-      .then((data: Quote) => {
-        this.setState({
-          quoteContent: data.content,
-          content: (
-            <TweetBlock>
+    });
+  };
+
+  const fetchUser = () => {
+    return fetch("https://random-data-api.com/api/v2/users").then((res) =>
+      res.json()
+    );
+  };
+
+  const fetchQuote = () => {
+    return fetch("https://api.quotable.io/random").then((res) => res.json());
+  };
+
+  useEffect(() => {
+    if (tweetBlockRef.current) {
+      tweetBlockRef.current.addEventListener("scroll", () => {
+        if (
+          tweetBlockRef.current.scrollHeight -
+            tweetBlockRef.current.scrollTop ===
+          tweetBlockRef.current.clientHeight
+        ) {
+          addTweet();
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    addTweet();
+  }, []);
+
+  return (
+    <div className="App">
+      <Phone>
+        <header>
+          <nav>
+            <img
+              className="profile"
+              src="https://blogtimenow.com/wp-content/uploads/2014/06/hide-twitter-avatar.png"
+              alt="profile"
+            />
+            <img
+              className="logo"
+              src="https://www.stickpng.com/assets/images/5847f98fcef1014c0b5e48c8.png"
+              alt="logo"
+            />
+          </nav>
+        </header>
+        <hr />
+        <Tweets ref={tweetBlockRef}>
+          {tweets.map((tweet) => (
+            <TweetBlock key={tweet.username}>
               <Tweet>
-                <img src={this.state.avatar}></img>
+                <img src={tweet.avatar} alt="avatar" />
                 <div className="tweetContent">
                   <p className="username">
-                    {this.state.username}{" "}
+                    {tweet.username}{" "}
                     <span>{Math.round(Math.random() * 24)} h.</span>
                   </p>
-                  <p className="quoteContent">{this.state.quoteContent}</p>
+                  <p className="quoteContent">{tweet.quoteContent}</p>
                 </div>
               </Tweet>
-              <br></br>
-              <hr></hr>
+              <br />
+              <hr />
             </TweetBlock>
-          ),
-        });
-      });
-  }
-  componentDidMount() {
-    this.fetchUser();
-    this.fetchQuote();
-  }
-
-  render() {
-    return (
-      <div className="App">
-        <Phone>
-          <header>
-            <nav>
-              <img
-                className="profile"
-                src="https://blogtimenow.com/wp-content/uploads/2014/06/hide-facebook-profile-picture-notification.jpg"
-              ></img>
-              <img
-                className="logo"
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Twitter-logo.svg/800px-Twitter-logo.svg.png"
-              ></img>
-            </nav>
-          </header>
-          <hr></hr>
-          <Tweets>{this.state.content}</Tweets>
-        </Phone>
-      </div>
-    );
-  }
-}
+          ))}
+        </Tweets>
+      </Phone>
+    </div>
+  );
+};
 
 export default App;
