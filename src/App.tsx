@@ -3,7 +3,7 @@ import styled from "styled-components";
 import "./App.css";
 
 const Phone = styled.div`
-  width: 350px;
+  width: 300px;
   height: 600px;
   outline: 5px solid black;
   border-radius: 20px;
@@ -53,8 +53,8 @@ const Tweet = styled.div`
   margin-top: 5%;
 
   img {
-    width: 75px;
-    height: 75px;
+    width: 60px;
+    height: 60px;
     border-radius: 100%;
   }
 
@@ -68,13 +68,13 @@ const Tweet = styled.div`
     font-weight: bold;
 
     span {
-      font-size: 1.5vw;
+      font-size: 13px;
       margin-left: 1%;
       color: gray;
     }
   }
   .quoteContent {
-    font-size: 1.7vw;
+    font-size: 15px;
   }
 `;
 const TweetBlock = styled.div`
@@ -87,6 +87,7 @@ const TweetBlock = styled.div`
 interface UserData {
   avatar: string;
   username: string;
+  results: any;
 }
 
 interface Quote {
@@ -100,14 +101,15 @@ class App extends React.Component {
     quoteContent: "",
     username: "",
     avatar: "",
+    results: [],
   };
   fetchUser() {
-    fetch("https://random-data-api.com/api/v2/users")
+    fetch("https://randomuser.me/api/")
       .then((res) => res.json())
       .then((data: UserData) => {
         this.setState({
-          username: data.username,
-          avatar: data.avatar,
+          username: data.results[0].login.username,
+          avatar: data.results[0].picture.large,
         });
       });
   }
